@@ -1,10 +1,20 @@
-FROM node
-RUN mkdir -p guiaperguntas/node_modules && chown -R node:node guiaperguntas
-WORKDIR guiaperguntas
-# Install app dependencies
-COPY package*.json ./
-USER node
-COPY --chown=node:node . .
+# Use the official image as a parent image.
+FROM node:current-slim
+
+# Set the working directory.
+WORKDIR /usr/src/app
+
+# Copy the file from your host to your current location.
+COPY package.json .
+
+# Run the command inside your image filesystem.
 RUN npm install
+
+# Add metadata to the image to describe which port the container is listening on at runtime.
 EXPOSE 8081
-CMD [ "node", "index.js" ]
+
+# Run the specified command within the container.
+CMD [ "npm", "start" ]
+
+# Copy the rest of your app's source code from your host to your image filesystem.
+COPY . .
