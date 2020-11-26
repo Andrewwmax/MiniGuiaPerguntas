@@ -7,4 +7,4 @@ USER node
 COPY --chown=node:node . .
 RUN npm install
 EXPOSE 8081
-CMD [ "node", "app.js" ]
+CMD [ "node", "index.js" ]
