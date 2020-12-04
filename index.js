@@ -4,6 +4,12 @@ const bodyParser = require('body-parser')
 const connection = require('./database/database')
 const Pergunta = require('./database/Pergunta')
 const Resposta = require('./database/Resposta')
+const mongoose = require('mongoose')
+require('./database/PerguntaMongoo')
+const PerguntaMongoo = mongoose.model('pergunta')
+require('./database/RespostaMongoo')
+const RespostaMongoo = mongoose.model('resposta')
+
 
 connection.authenticate().then(() => {
 	console.log('Conexão feita com o BD!!!')
@@ -17,6 +23,16 @@ app.use(express.static('public'))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
+mongoose.connect('mongodb://localhost/guiaperguntas', {
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+	useFindAndModify: false,
+	useCreateIndex: true
+}).then(() => { 
+	console.log('Conectado ao Mongo DB ' + 'mongodb://localhost/guiaperguntas')
+}).catch((err) => {
+	console.log('Errooooooow = ' + err)
+})
 
 app.get('/', (req, res) => {
 	Pergunta.findAll({raw: true, order:[
@@ -39,8 +55,19 @@ app.post('/salvarpergunta', (req, res) => {
 		titulo: titulo,
 		descricao: descricao
 	}).then(() => {
-		res.redirect('/')
+		const novaPergunta = {
+			titulo: titulo,
+			descricao: descricao
+		}
+		new PerguntaMongoo(novaPergunta).save().then(() => {
+			res.redirect('/')
+		}).catch(err => {
+			console.log('Erro ao salvar no Mongodb = '+ err);
+		})
+	}).catch(err => {
+		console.log('Erro ao salvar no Mysql = '+ err);
 	})
+
 })
 
 app.get('/pergunta/:id', (req,res) => {
@@ -72,7 +99,17 @@ app.post('/responder', (req, res) => {
 		corpo: corpo,
 		perguntaId: perguntaId
 	}).then(() => {
-		res.redirect(`/pergunta/${perguntaId}`)
+		const novaResposta = {
+			corpo: corpo,
+			perguntaId: perguntaId
+		}
+		new RespostaMongoo(novaResposta).save().then(() => {
+			res.redirect(`/pergunta/${perguntaId}`)
+		}).catch(err => {
+			console.log('Erro ao salvar no Mongodb = '+ err);
+		})
+	}).catch(err => {
+		console.log('Erro ao salvar no Mysql = '+ err);
 	})
 })
 
